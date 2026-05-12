@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert, ScrollView } from 'react-native';
 
 const services = ['Corte de pelo', 'Barba', 'Corte + barba'];
 const hours = ['10:00', '11:00', '12:00', '17:00', '18:00'];
@@ -21,7 +21,7 @@ export default function BookingScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Reserva tu cita</Text>
 
       <Text style={styles.sectionTitle}>1. Elige servicio</Text>
@@ -49,23 +49,40 @@ export default function BookingScreen() {
             ]}
             onPress={() => setSelectedHour(hour)}
           >
-            <Text style={styles.hourText}>{hour}</Text>
+            <Text
+              style={[
+                styles.hourText,
+                selectedHour === hour && styles.selectedHourText,
+              ]}
+            >
+              {hour}
+            </Text>
           </Pressable>
         ))}
+      </View>
+
+      <View style={styles.summaryBox}>
+        <Text style={styles.summaryTitle}>Resumen</Text>
+        <Text style={styles.summaryText}>
+          Servicio: {selectedService || 'No seleccionado'}
+        </Text>
+        <Text style={styles.summaryText}>
+          Hora: {selectedHour || 'No seleccionada'}
+        </Text>
       </View>
 
       <Pressable style={styles.confirmButton} onPress={handleConfirm}>
         <Text style={styles.confirmButtonText}>Confirmar cita</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#f4f1ea',
     padding: 24,
+    backgroundColor: '#f4f1ea',
+    flexGrow: 1,
   },
   title: {
     fontSize: 28,
@@ -121,12 +138,35 @@ const styles = StyleSheet.create({
     color: '#111827',
     fontWeight: '600',
   },
+  selectedHourText: {
+    color: '#ffffff',
+  },
+  summaryBox: {
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  summaryTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 8,
+  },
+  summaryText: {
+    fontSize: 15,
+    color: '#4b5563',
+    marginBottom: 4,
+  },
   confirmButton: {
     backgroundColor: '#0f766e',
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
     marginTop: 12,
+    marginBottom: 24,
   },
   confirmButtonText: {
     color: '#ffffff',
