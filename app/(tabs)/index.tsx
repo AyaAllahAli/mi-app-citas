@@ -10,7 +10,11 @@ export default function HomeScreen() {
       Alert.alert('Falta tu nombre', 'Escribe tu nombre para continuar');
       return;
     }
-    router.push('/booking');
+    router.push({
+    pathname: '/booking',
+    params: { name },
+  });
+    //router.push('/booking');
     //Alert.alert('Perfecto', `Hola ${name}, vamos a reservar tu cita`);
   };
 

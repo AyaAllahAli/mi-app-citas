@@ -1,22 +1,36 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Alert, ScrollView } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Alert,
+  ScrollView,
+  TextInput,
+} from 'react-native';
 
 const services = ['Corte de pelo', 'Barba', 'Corte + barba'];
 const hours = ['10:00', '11:00', '12:00', '17:00', '18:00'];
 
 export default function BookingScreen() {
+  const { name } = useLocalSearchParams<{ name?: string }>();
+
+  const [clientName, setClientName] = useState(
+    typeof name === 'string' ? name : ''
+  );
   const [selectedService, setSelectedService] = useState('');
   const [selectedHour, setSelectedHour] = useState('');
 
   const handleConfirm = () => {
-    if (!selectedService || !selectedHour) {
-      Alert.alert('Faltan datos', 'Selecciona un servicio y una hora');
+    if (!clientName || !selectedService || !selectedHour) {
+      Alert.alert('Faltan datos', 'Escribe tu nombre, elige servicio y hora');
       return;
     }
 
     Alert.alert(
       'Cita creada',
-      `Servicio: ${selectedService}\nHora: ${selectedHour}`
+      `Nombre: ${clientName}\nServicio: ${selectedService}\nHora: ${selectedHour}`
     );
   };
 
@@ -24,7 +38,15 @@ export default function BookingScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Reserva tu cita</Text>
 
-      <Text style={styles.sectionTitle}>1. Elige servicio</Text>
+      <Text style={styles.sectionTitle}>1. Escribe tu nombre</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Tu nombre"
+        value={clientName}
+        onChangeText={setClientName}
+      />
+
+      <Text style={styles.sectionTitle}>2. Elige servicio</Text>
       {services.map((service) => (
         <Pressable
           key={service}
@@ -38,7 +60,7 @@ export default function BookingScreen() {
         </Pressable>
       ))}
 
-      <Text style={styles.sectionTitle}>2. Elige hora</Text>
+      <Text style={styles.sectionTitle}>3. Elige hora</Text>
       <View style={styles.hoursContainer}>
         {hours.map((hour) => (
           <Pressable
@@ -63,6 +85,9 @@ export default function BookingScreen() {
 
       <View style={styles.summaryBox}>
         <Text style={styles.summaryTitle}>Resumen</Text>
+        <Text style={styles.summaryText}>
+          Nombre: {clientName || 'No escrito'}
+        </Text>
         <Text style={styles.summaryText}>
           Servicio: {selectedService || 'No seleccionado'}
         </Text>
@@ -98,6 +123,15 @@ const styles = StyleSheet.create({
     color: '#374151',
     marginBottom: 12,
     marginTop: 12,
+  },
+  input: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 18,
   },
   card: {
     backgroundColor: '#ffffff',
