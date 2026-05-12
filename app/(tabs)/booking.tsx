@@ -6,12 +6,19 @@ import {
   StyleSheet,
   Pressable,
   Alert,
-  ScrollView,
   TextInput,
+  FlatList,
 } from 'react-native';
 
 const services = ['Corte de pelo', 'Barba', 'Corte + barba'];
 const hours = ['10:00', '11:00', '12:00', '17:00', '18:00'];
+
+type BookingItem = {
+  id: string;
+  clientName: string;
+  service: string;
+  hour: string;
+};
 
 export default function BookingScreen() {
   const { name } = useLocalSearchParams<{ name?: string }>();
@@ -21,6 +28,7 @@ export default function BookingScreen() {
   );
   const [selectedService, setSelectedService] = useState('');
   const [selectedHour, setSelectedHour] = useState('');
+  const [bookings, setBookings] = useState<BookingItem[]>([]);
 
   const handleConfirm = () => {
     if (!clientName || !selectedService || !selectedHour) {
@@ -28,78 +36,109 @@ export default function BookingScreen() {
       return;
     }
 
+    const newBooking: BookingItem = {
+      id: Date.now().toString(),
+      clientName,
+      service: selectedService,
+      hour: selectedHour,
+    };
+
+    setBookings((prev) => [...prev, newBooking]);
+
     Alert.alert(
       'Cita creada',
       `Nombre: ${clientName}\nServicio: ${selectedService}\nHora: ${selectedHour}`
     );
+
+    setSelectedService('');
+    setSelectedHour('');
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Reserva tu cita</Text>
+    <FlatList
+      data={bookings}
+      keyExtractor={(item) => item.id}
+      ListHeaderComponent={
+        <View style={styles.headerContainer}>
+          <Text style={styles.title}>Reserva tu cita</Text>
 
-      <Text style={styles.sectionTitle}>1. Escribe tu nombre</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Tu nombre"
-        value={clientName}
-        onChangeText={setClientName}
-      />
+          <Text style={styles.sectionTitle}>1. Escribe tu nombre</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Tu nombre"
+            value={clientName}
+            onChangeText={setClientName}
+          />
 
-      <Text style={styles.sectionTitle}>2. Elige servicio</Text>
-      {services.map((service) => (
-        <Pressable
-          key={service}
-          style={[
-            styles.card,
-            selectedService === service && styles.selectedCard,
-          ]}
-          onPress={() => setSelectedService(service)}
-        >
-          <Text style={styles.cardTitle}>{service}</Text>
-        </Pressable>
-      ))}
-
-      <Text style={styles.sectionTitle}>3. Elige hora</Text>
-      <View style={styles.hoursContainer}>
-        {hours.map((hour) => (
-          <Pressable
-            key={hour}
-            style={[
-              styles.hourButton,
-              selectedHour === hour && styles.selectedHourButton,
-            ]}
-            onPress={() => setSelectedHour(hour)}
-          >
-            <Text
+          <Text style={styles.sectionTitle}>2. Elige servicio</Text>
+          {services.map((service) => (
+            <Pressable
+              key={service}
               style={[
-                styles.hourText,
-                selectedHour === hour && styles.selectedHourText,
+                styles.card,
+                selectedService === service && styles.selectedCard,
               ]}
+              onPress={() => setSelectedService(service)}
             >
-              {hour}
+              <Text style={styles.cardTitle}>{service}</Text>
+            </Pressable>
+          ))}
+
+          <Text style={styles.sectionTitle}>3. Elige hora</Text>
+          <View style={styles.hoursContainer}>
+            {hours.map((hour) => (
+              <Pressable
+                key={hour}
+                style={[
+                  styles.hourButton,
+                  selectedHour === hour && styles.selectedHourButton,
+                ]}
+                onPress={() => setSelectedHour(hour)}
+              >
+                <Text
+                  style={[
+                    styles.hourText,
+                    selectedHour === hour && styles.selectedHourText,
+                  ]}
+                >
+                  {hour}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <View style={styles.summaryBox}>
+            <Text style={styles.summaryTitle}>Resumen</Text>
+            <Text style={styles.summaryText}>
+              Nombre: {clientName || 'No escrito'}
             </Text>
+            <Text style={styles.summaryText}>
+              Servicio: {selectedService || 'No seleccionado'}
+            </Text>
+            <Text style={styles.summaryText}>
+              Hora: {selectedHour || 'No seleccionada'}
+            </Text>
+          </View>
+
+          <Pressable style={styles.confirmButton} onPress={handleConfirm}>
+            <Text style={styles.confirmButtonText}>Confirmar cita</Text>
           </Pressable>
-        ))}
-      </View>
 
-      <View style={styles.summaryBox}>
-        <Text style={styles.summaryTitle}>Resumen</Text>
-        <Text style={styles.summaryText}>
-          Nombre: {clientName || 'No escrito'}
-        </Text>
-        <Text style={styles.summaryText}>
-          Servicio: {selectedService || 'No seleccionado'}
-        </Text>
-        <Text style={styles.summaryText}>
-          Hora: {selectedHour || 'No seleccionada'}
-        </Text>
-      </View>
-
-      <Pressable style={styles.confirmButton} onPress={handleConfirm}>
-        <Text style={styles.confirmButtonText}>Confirmar cita</Text>
-      </Pressable>
-    </ScrollView>
+          <Text style={styles.sectionTitle}>Reservas creadas</Text>
+        </View>
+      }
+      renderItem={({ item }) => (
+        <View style={styles.bookingItem}>
+          <Text style={styles.bookingText}>Nombre: {item.clientName}</Text>
+          <Text style={styles.bookingText}>Servicio: {item.service}</Text>
+          <Text style={styles.bookingText}>Hora: {item.hour}</Text>
+        </View>
+      )}
+      ListEmptyComponent={
+        <Text style={styles.emptyText}>Todavía no hay reservas guardadas</Text>
+      }
+      contentContainerStyle={styles.container}
+    />
   );
 }
 
@@ -109,13 +148,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#f4f1ea',
     flexGrow: 1,
   },
+  headerContainer: {
+    paddingTop: 20,
+  },
   title: {
     fontSize: 28,
     fontWeight: '700',
     color: '#1f2937',
     textAlign: 'center',
     marginBottom: 24,
-    marginTop: 40,
+    marginTop: 20,
   },
   sectionTitle: {
     fontSize: 18,
@@ -206,5 +248,23 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  bookingItem: {
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  bookingText: {
+    fontSize: 15,
+    color: '#374151',
+    marginBottom: 4,
+  },
+  emptyText: {
+    fontSize: 15,
+    color: '#6b7280',
+    marginTop: 8,
   },
 });
